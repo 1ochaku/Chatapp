@@ -1,12 +1,16 @@
-// import './App.css'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom"
 import Auth from "./pages/Auth"
+import ChatPage from "./pages/ChatPage"
 
 function App() {
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
-      <Auth/>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Auth />} />
+        <Route path="/chat" element={<ChatPage/>}/>
+      </Routes>
+    </Router>
   )
 }
 
