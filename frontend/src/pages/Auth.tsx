@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import backgroundImage from "../assets/background.jpg";
 
 const Auth: React.FC = () => {
     // holds the state for whether user want to login or signup
@@ -74,8 +75,10 @@ const Auth: React.FC = () => {
     // if it's an existing user then only email and passwd req
     // else it will req username creation
     return (
-        <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
+        <div
+            className="w-screen h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: "100%" }}
+        >    <div className="bg-white p-6 rounded-2xl shadow-lg w-96">
                 {/* Header */}
                 <div className="flex justify-between mb-4">
                     <button
