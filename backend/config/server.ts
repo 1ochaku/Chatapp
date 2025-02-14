@@ -4,4 +4,7 @@ export default ({ env }) => ({
   app: {
     keys: env.array('APP_KEYS'),
   },
+  websocket: {
+    enabled: true, // enabling websocket
+  }
 });

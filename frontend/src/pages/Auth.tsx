@@ -44,7 +44,7 @@ const Auth: React.FC = () => {
             setError("");
             
             // redirecting to chat page
-            navigate("/chat");
+            navigate("/chat", {state: {email}});
         } catch (err: any) {
             // Check if error response exists
             if (err.response && err.response.data) {
