@@ -55,9 +55,17 @@ const ChatWindow = () => {
 
     const sendMessage = () => {
         if (!input.trim() || !currentSession) return;
+
+        // Update messages
         const newMessages = [...messages, `User: ${input}`, `Server: ${input}`];
         setMessages(newMessages);
         localStorage.setItem(currentSession, JSON.stringify(newMessages));
+
+        // Bring the active session to the front
+        const updatedSessions = [currentSession, ...sessions.filter(session => session !== currentSession)];
+        setSessions(updatedSessions);
+        localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
+
         setInput("");
     };
 
