@@ -15,8 +15,11 @@ const ChatWindow = () => {
         if (currentUser) {
             const savedSessions = getAllSessions();
             setSessions(savedSessions);
+
             const lastSession = localStorage.getItem(`${currentUser}_lastSession`);
-            if (lastSession) loadSession(lastSession);
+            if (lastSession && savedSessions.includes(lastSession)) {
+                loadSession(lastSession);
+            }
         }
     }, [currentUser]);
 
@@ -45,10 +48,47 @@ const ChatWindow = () => {
         return JSON.parse(localStorage.getItem(`${currentUser}_sessions`) || "[]");
     };
 
+    const deleteSession = (sessionId: string) => {
+        if (!currentUser) return;
+
+        // Remove the session from the list
+        let updatedSessions = sessions.filter(session => session !== sessionId);
+
+        // Update localStorage immediately
+        localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
+        localStorage.removeItem(sessionId);
+
+        // Adjust session count correctly (only if the deleted session was the highest-numbered one)
+        if (sessions.length > 0) {
+            const sessionNumbers = updatedSessions.map(session => parseInt(session.split("_session_")[1], 10));
+            const maxSessionNum = sessionNumbers.length > 0 ? Math.max(...sessionNumbers) : 0;
+            localStorage.setItem(`${currentUser}_sessionCount`, maxSessionNum.toString());
+        } else {
+            localStorage.setItem(`${currentUser}_sessionCount`, "0");
+        }
+
+        // If the deleted session was the active one, load the next available session
+        if (sessionId === currentSession) {
+            if (updatedSessions.length > 0) {
+                loadSession(updatedSessions[0]); // Load the next session in the list
+            } else {
+                setCurrentSession(null);
+                setMessages([]);
+                localStorage.removeItem(`${currentUser}_lastSession`);
+            }
+        }
+
+        // Finally, update state to trigger re-render
+        setSessions([...updatedSessions]);
+    };
+
+    
     const loadSession = (sessionId: string) => {
         if (!currentUser) return;
+
         setCurrentSession(sessionId);
         localStorage.setItem(`${currentUser}_lastSession`, sessionId);
+
         const storedMessages = JSON.parse(localStorage.getItem(sessionId) || "[]");
         setMessages(storedMessages.reverse());
     };
@@ -61,7 +101,7 @@ const ChatWindow = () => {
         setMessages(newMessages);
         localStorage.setItem(currentSession, JSON.stringify(newMessages));
 
-        // Bring the active session to the front
+        // Move the session to the top only if a message is sent
         const updatedSessions = [currentSession, ...sessions.filter(session => session !== currentSession)];
         setSessions(updatedSessions);
         localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
@@ -87,18 +127,35 @@ const ChatWindow = () => {
                     ➕ New Chat
                 </button>
                 <div className="flex-1 overflow-y-auto space-y-2">
-                    {sessions.map((session) => {
-                        const sessionNumber = session.split("_session_")[1];
-                        return (
-                            <div
-                                key={session}
-                                onClick={() => loadSession(session)}
-                                className={`p-2 cursor-pointer rounded ${session === currentSession ? "bg-blue-500" : "hover:bg-gray-700"}`}
-                            >
-                                Session {sessionNumber} {session === currentSession && "(Active)"}
-                            </div>
-                        );
-                    })}
+                    {sessions.length === 0 ? (
+                        <p className="text-gray-500 text-center">Tap on New Chat to start a conversation</p>
+                    ) : (
+                        sessions.map((session) => {
+                            const sessionNumber = session.split("_session_")[1];
+                            return (
+                                <div
+                                    key={session}
+                                    className={`flex justify-between items-center p-2 cursor-pointer rounded ${
+                                        session === currentSession ? "bg-blue-500" : "hover:bg-gray-700"
+                                    }`}
+                                    onClick={() => loadSession(session)}
+                                >
+                                    <span>
+                                        Session {sessionNumber} {session === currentSession && "(Active)"}
+                                    </span>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteSession(session);
+                                        }}
+                                        className="text-red-500 hover:text-red-700"
+                                    >
+                                        ❌
+                                    </button>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
                 <button
                     onClick={handleLogout}
@@ -112,13 +169,11 @@ const ChatWindow = () => {
                 <h2 className="text-2xl font-semibold mb-4">
                     {currentSession ? `Chat: Session ${currentSession.split("_session_")[1]}` : "Select a Session"}
                 </h2>
-                <div className={`flex-1 overflow-y-auto bg-white shadow-md p-4 rounded mb-4 h-[70vh] ${messages.length === 0 ? "flex items-center justify-center" : ""
-                    }`}>
+                <div className={`flex-1 overflow-y-auto bg-white shadow-md p-4 rounded mb-4 h-[70vh] ${messages.length === 0 ? "flex items-center justify-center" : ""}`}>
                     {sessions.length === 0 ? (
                         <p className="text-gray-500 flex items-center justify-center">
                             Tap on New Chat to start a conversation
                         </p>
-
                     ) : (
                         <div className="w-full">
                             {messages.map((msg, index) => (
