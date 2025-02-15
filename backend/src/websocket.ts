@@ -4,21 +4,10 @@ export const initWebSocket = (server: any) => {
     const wss = new WebSocketServer({ server });
 
     wss.on("connection", (ws: WebSocket) => {
+        // to alert a new connection occured
         console.log("New WebSocket connection");
 
-        // ws.on("message", (message: string) => {
-        //     console.log("Received:", message.toString());
-        //     ws.send(`Server Reply: ${message.toString()}`); // Echo back with a reply
-        // });
-
-        // !!!!!!!!!!!1
-        // ws.on("message", (message: string) => {
-        //     const receivedData = JSON.parse(message);
-        //     console.log(receivedData.session); // "123"
-        //     console.log(receivedData.message); // "Hello"
-        // });
-
-        // !!!!!!!!!!!!!!!2
+        // on receiving a message, it parses and replies back
         ws.on("message", (message: string) => {
             const receivedData = JSON.parse(message);
             
@@ -35,8 +24,7 @@ export const initWebSocket = (server: any) => {
             ws.send(JSON.stringify(response));
         });
 
-
-
+        // if the user disconnects
         ws.on("close", () => {
             console.log("Client disconnected");
         });
