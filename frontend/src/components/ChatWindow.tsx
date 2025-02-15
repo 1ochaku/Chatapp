@@ -27,7 +27,7 @@ const ChatWindow = () => {
 
         // Prevent reinitialization if WebSocket already exists
         if (wsRef.current) return;
-        
+
         const websocket = new WebSocket(import.meta.env.VITE_WS_SERVER);
         wsRef.current = websocket;
         setWs(websocket); 
@@ -163,7 +163,7 @@ const ChatWindow = () => {
         <div className="flex h-full">
             <div className="w-1/4 bg-gray-800 text-white p-4 flex flex-col">
                 <h3 className="text-lg font-semibold mb-4">Sessions</h3>
-                <button onClick={createNewSession} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded mb-4">➕ New Chat</button>
+                <button onClick={createNewSession} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded mb-4 cursor-pointer">➕ New Chat</button>
                 <div className="flex-1 overflow-y-auto space-y-2">
                     {sessions.length === 0 ? (
                         <p className="text-gray-500 text-center">Tap on New Chat to start a conversation</p>
@@ -171,12 +171,12 @@ const ChatWindow = () => {
                         sessions.map((session) => (
                             <div key={session} className={`flex justify-between items-center p-2 cursor-pointer rounded ${session === currentSession ? "bg-blue-500" : "hover:bg-gray-700"}`} onClick={() => loadSession(session)}>
                                 <span>Session {session.split("_session_")[1]} {session === currentSession && "(Active)"}</span>
-                                <button onClick={(e) => { e.stopPropagation(); deleteSession(session); }} className="text-red-500 hover:text-red-700">❌</button>
+                                <button onClick={(e) => { e.stopPropagation(); deleteSession(session); }} className="text-red-500 hover:text-red-700 cursor-pointer">❌</button>
                             </div>
                         ))
                     )}
                 </div>
-                <button onClick={handleLogout} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded mt-4">🚪 Logout</button>
+                <button onClick={handleLogout} className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded mt-4 cursor-pointer">🚪 Logout</button>
             </div>
             <div className="flex flex-col flex-1 bg-gray-100 p-6">
                 <h2 className="text-2xl font-semibold mb-4">{currentSession ? `Chat: Session ${currentSession.split("_session_")[1]}` : "Select a Session"}</h2>
@@ -192,7 +192,7 @@ const ChatWindow = () => {
                 </div>
                 <div className="flex space-x-2">
                     <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message..." className="flex-1 p-2 border rounded" />
-                    <button onClick={sendMessage} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Send</button>
+                    <button onClick={sendMessage} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded cursor-pointer">Send</button>
                 </div>
             </div>
         </div>
