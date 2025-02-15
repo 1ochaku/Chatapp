@@ -14,6 +14,12 @@ const ChatWindow = () => {
 
     const wsRef = useRef<WebSocket | null>(null); // WebSocket reference
 
+    // when the user logins, this is executed
+    // all sessions are fetched and loaded
+    // this section also handles the web socket server connection
+    // sets up the connection to the server and listens for the server reply
+    // thereafter correctly updates the message array
+    // and store in the local storage
     useEffect(() => {
         if (!currentUser) return;
 
@@ -72,10 +78,14 @@ const ChatWindow = () => {
         };
     }, [currentUser]); 
 
+    // for enabling scroll feature in the chat window
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // when user taps on New chat, this is called
+    // it creates a new session and adds into the existing session list
+    // also keep track of total sessions
     const createNewSession = () => {
         if (!currentUser) return;
 
@@ -93,10 +103,12 @@ const ChatWindow = () => {
         loadSession(newSessionId);
     };
 
+    // gets all the sessions stored in local storage
     const getAllSessions = (): string[] => {
         return JSON.parse(localStorage.getItem(`${currentUser}_sessions`) || "[]");
     };
 
+    // handles the delete operation in the chat window
     const deleteSession = (sessionId: string) => {
         if (!currentUser) return;
 
@@ -125,6 +137,7 @@ const ChatWindow = () => {
         setSessions([...updatedSessions]);
     };
 
+    // on login, it loads all the sessions available for the particular user
     const loadSession = (sessionId: string) => {
         if (!currentUser) return;
 
@@ -135,6 +148,9 @@ const ChatWindow = () => {
         setMessages(storedMessages);
     };
 
+    // sends the message to server
+    // but before that it stores the user message into the message array
+    // move the current session to the top most session in the list
     const sendMessage = () => {
         if (!input.trim() || !currentSession || !ws) return;
 
@@ -152,6 +168,7 @@ const ChatWindow = () => {
         setInput("");
     };
 
+    // on logout, reinitialise all state
     const handleLogout = () => {
         setCurrentSession(null);
         setMessages([]);
@@ -159,6 +176,9 @@ const ChatWindow = () => {
         navigate("/");
     };
 
+    // includes the layout of the chat window
+    // there is a sidebar consisting of New chat and logout button
+    // as well on rhs, it has the text box and send button
     return (
         <div className="flex h-full">
             <div className="w-1/4 bg-gray-800 text-white p-4 flex flex-col">

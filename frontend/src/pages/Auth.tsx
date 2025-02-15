@@ -17,6 +17,10 @@ const Auth: React.FC = () => {
 
     const navigate = useNavigate();
 
+    // listens for the submission of form
+    // on submitting, it connect to the backend for authentication
+    // if authenticated: navigates to the chat page for the current valid email id
+    // else throws error
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -63,6 +67,8 @@ const Auth: React.FC = () => {
         }
     }
 
+    // layout for the form element in the login page
+    // it shows error as well
     return (
         <div
             className="w-screen h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
