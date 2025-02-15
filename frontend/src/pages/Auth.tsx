@@ -11,6 +11,9 @@ const Auth: React.FC = () => {
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState(""); // used only during signup
     const [error, setError] = useState("");
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const loginUrl = `${API_BASE_URL}/auth/local`;
+    const registerUrl = `${API_BASE_URL}/auth/local/register`;
 
     const navigate = useNavigate();
 
@@ -26,8 +29,8 @@ const Auth: React.FC = () => {
 
         try {
             const url = isLogin
-            ? "http://localhost:1337/api/auth/local"
-                : "http://localhost:1337/api/auth/local/register";
+            ? loginUrl
+                : registerUrl;
             
             const payload = isLogin
                 ? { identifier: email, password }
@@ -85,6 +88,9 @@ const Auth: React.FC = () => {
                         className={`text-lg font-semibold ${isLogin ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
                         onClick={() => {
                             setIsLogin(true);
+                            setUsername("");
+                            setPassword("");
+                            setEmail("");
                             setError("");
                         }}
                     >
@@ -94,6 +100,9 @@ const Auth: React.FC = () => {
                         className={`text-lg font-semibold ${!isLogin ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
                         onClick={() => {
                             setIsLogin(false)
+                            setUsername("");
+                            setPassword("");
+                            setEmail("");
                             setError("");
                         }
                         }

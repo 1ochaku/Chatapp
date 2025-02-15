@@ -10,85 +10,8 @@ const ChatWindow = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const currentUser = location.state?.email || null;
-    // !!!!!!!!!!!!
     const [ws, setWs] = useState<WebSocket | null>(null);
 
-    // useEffect(() => {
-    //     if (currentUser) {
-    //         const savedSessions = getAllSessions();
-    //         setSessions(savedSessions);
-
-    //         const lastSession = localStorage.getItem(`${currentUser}_lastSession`);
-    //         if (lastSession && savedSessions.includes(lastSession)) {
-    //             loadSession(lastSession);
-    //         }
-    //     }
-    // }, [currentUser]);
-
-    // !!!!!!!!!!!! 1
-    // useEffect(() => {
-    //     if (!currentUser) return;
-
-    //     const savedSessions = getAllSessions();
-    //     setSessions(savedSessions);
-
-    //     const lastSession = localStorage.getItem(`${currentUser}_lastSession`);
-    //     if (lastSession && savedSessions.includes(lastSession)) {
-    //         loadSession(lastSession);
-    //     }
-
-    //     const websocket = new WebSocket("ws://localhost:1337"); // Your WebSocket server URL
-    //     setWs(websocket); // Store it in state for sending messages later
-
-    //     websocket.onopen = () => console.log("Connected to WebSocket server");
-
-    //     // websocket.onmessage = (event) => {
-    //     //     console.log("Raw message received:", event.data);
-    //     //     try {
-    //     //         const { session, reply } = JSON.parse(event.data); // Parse server response
-    //     //         console.log("Session:", session);
-    //     //         console.log("Reply:", reply);
-    //     //     } catch (error) {
-    //     //         console.error("Error parsing message:", error);
-    //     //     }
-    //     // };
-
-    //     websocket.onmessage = (event) => {
-    //         try {
-    //             const { session, reply } = JSON.parse(event.data);
-    //             if (!session || !reply) return;
-
-    //             setMessages((prevMessages) => {
-    //                 const newMessages = [...prevMessages, `Server: ${reply}`];
-
-    //                 // Store the updated messages in localStorage
-    //                 localStorage.setItem(session, JSON.stringify(newMessages));
-                    
-    //                 return newMessages; // Ensure state updates correctly
-    //             });
-
-    //             setSessions((prevSessions) => {
-    //                 const updatedSessions = [currentSession, ...prevSessions.filter(session => session !== currentSession)];
-                    
-    //                 localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
-                    
-    //                 return updatedSessions; // Ensure state updates correctly
-    //             });
-    //         } catch (error) {
-    //             console.error("Error parsing server message:", error);
-    //         }
-    //     };
-
-    //     websocket.onerror = (error) => console.error("WebSocket error:", error);
-
-    //     websocket.onclose = () => console.log("WebSocket connection closed");
-
-    //     return () => {
-    //         websocket.close();
-    //     };
-    // }, [currentUser, currentSession]);
-
-    // !!!!!!!!!!! 2
     const wsRef = useRef<WebSocket | null>(null); // WebSocket reference
 
     useEffect(() => {
@@ -104,8 +27,8 @@ const ChatWindow = () => {
 
         // Prevent reinitialization if WebSocket already exists
         if (wsRef.current) return;
-
-        const websocket = new WebSocket("ws://localhost:1337");
+        
+        const websocket = new WebSocket(import.meta.env.VITE_WS_SERVER);
         wsRef.current = websocket;
         setWs(websocket); 
 
@@ -212,21 +135,6 @@ const ChatWindow = () => {
         setMessages(storedMessages);
     };
 
-    // const sendMessage = () => {
-    //     if (!input.trim() || !currentSession) return;
-
-    //     const newMessages = [...messages, `User: ${input}`, `Server: ${input}`];
-    //     setMessages(newMessages);
-    //     localStorage.setItem(currentSession, JSON.stringify(newMessages));
-
-    //     const updatedSessions = [currentSession, ...sessions.filter(session => session !== currentSession)];
-    //     setSessions(updatedSessions);
-    //     localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
-
-    //     setInput("");
-    // };
-
-    // !!!!!!!!!!!!!!!!!!!!!
     const sendMessage = () => {
         if (!input.trim() || !currentSession || !ws) return;
 
