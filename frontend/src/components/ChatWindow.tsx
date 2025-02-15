@@ -9,19 +9,16 @@ const ChatWindow = () => {
     const chatEndRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const location = useLocation();
-    const currentUser = location.state?.email || null;
+    const currentUser = location.state?.email || localStorage.getItem("lastUser");
     const [ws, setWs] = useState<WebSocket | null>(null);
 
-    const wsRef = useRef<WebSocket | null>(null); // WebSocket reference
+    const wsRef = useRef<WebSocket | null>(null);
 
-    // when the user logins, this is executed
-    // all sessions are fetched and loaded
-    // this section also handles the web socket server connection
-    // sets up the connection to the server and listens for the server reply
-    // thereafter correctly updates the message array
-    // and store in the local storage
     useEffect(() => {
         if (!currentUser) return;
+
+        // Store current user in local storage to maintain login after refresh
+        localStorage.setItem("lastUser", currentUser);
 
         const savedSessions = getAllSessions();
         setSessions(savedSessions);
@@ -31,12 +28,11 @@ const ChatWindow = () => {
             loadSession(lastSession);
         }
 
-        // Prevent reinitialization if WebSocket already exists
         if (wsRef.current) return;
 
         const websocket = new WebSocket(import.meta.env.VITE_WS_SERVER);
         wsRef.current = websocket;
-        setWs(websocket); 
+        setWs(websocket);
 
         websocket.onopen = () => console.log("Connected to WebSocket server");
 
@@ -48,17 +44,14 @@ const ChatWindow = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages, `Server: ${reply}`];
 
-                    // Store the updated messages in localStorage
+                    // Store updated messages
                     localStorage.setItem(session, JSON.stringify(newMessages));
-
                     return newMessages;
                 });
 
                 setSessions((prevSessions) => {
                     const updatedSessions = [session, ...prevSessions.filter(s => s !== session)];
-
                     localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
-
                     return updatedSessions;
                 });
             } catch (error) {
@@ -76,39 +69,33 @@ const ChatWindow = () => {
             websocket.close();
             wsRef.current = null;
         };
-    }, [currentUser]); 
+    }, [currentUser]);
 
-    // for enabling scroll feature in the chat window
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // when user taps on New chat, this is called
-    // it creates a new session and adds into the existing session list
-    // also keep track of total sessions
     const createNewSession = () => {
         if (!currentUser) return;
 
         let sessionCount = parseInt(localStorage.getItem(`${currentUser}_sessionCount`) || "0", 10);
         sessionCount++;
-        
+
         const newSessionId = `${currentUser}_session_${sessionCount}`;
         const updatedSessions = [newSessionId, ...sessions];
-        
+
         localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
         localStorage.setItem(`${currentUser}_sessionCount`, sessionCount.toString());
         localStorage.setItem(newSessionId, JSON.stringify([]));
-        
+
         setSessions(updatedSessions);
         loadSession(newSessionId);
     };
 
-    // gets all the sessions stored in local storage
     const getAllSessions = (): string[] => {
         return JSON.parse(localStorage.getItem(`${currentUser}_sessions`) || "[]");
     };
 
-    // handles the delete operation in the chat window
     const deleteSession = (sessionId: string) => {
         if (!currentUser) return;
 
@@ -137,7 +124,6 @@ const ChatWindow = () => {
         setSessions([...updatedSessions]);
     };
 
-    // on login, it loads all the sessions available for the particular user
     const loadSession = (sessionId: string) => {
         if (!currentUser) return;
 
@@ -148,9 +134,6 @@ const ChatWindow = () => {
         setMessages(storedMessages);
     };
 
-    // sends the message to server
-    // but before that it stores the user message into the message array
-    // move the current session to the top most session in the list
     const sendMessage = () => {
         if (!input.trim() || !currentSession || !ws) return;
 
@@ -162,23 +145,19 @@ const ChatWindow = () => {
         setSessions(updatedSessions);
         localStorage.setItem(`${currentUser}_sessions`, JSON.stringify(updatedSessions));
 
-        // Send message to the WebSocket server
         ws.send(JSON.stringify({ session: currentSession, message: input }));
 
         setInput("");
     };
 
-    // on logout, reinitialise all state
     const handleLogout = () => {
         setCurrentSession(null);
         setMessages([]);
         setSessions([]);
+        localStorage.removeItem("lastUser");
         navigate("/");
     };
 
-    // includes the layout of the chat window
-    // there is a sidebar consisting of New chat and logout button
-    // as well on rhs, it has the text box and send button
     return (
         <div className="flex h-full">
             <div className="w-1/4 bg-gray-800 text-white p-4 flex flex-col">
@@ -200,18 +179,12 @@ const ChatWindow = () => {
             </div>
             <div className="flex flex-col flex-1 bg-gray-100 p-6">
                 <h2 className="text-2xl font-semibold mb-4">{currentSession ? `Chat: Session ${currentSession.split("_session_")[1]}` : "Select a Session"}</h2>
-                <div className={`flex-1 overflow-y-auto bg-white shadow-md p-4 rounded mb-4 h-[70vh] ${messages.length === 0 ? "flex items-center justify-center" : ""}`}>
-                    {sessions.length === 0 ? (
-                        <p className="text-gray-500 flex items-center justify-center">Tap on New Chat to start a conversation</p>
-                    ) : (
-                        <div className="w-full">
-                            {messages.map((msg, index) => <p key={index} className="mb-2">{msg}</p>)}
-                            <div ref={chatEndRef} />
-                        </div>
-                    )}
+                <div className="flex-1 overflow-y-auto bg-white shadow-md p-4 rounded mb-4 h-[70vh]">
+                    {messages.map((msg, index) => <p key={index} className="mb-2">{msg}</p>)}
+                    <div ref={chatEndRef} />
                 </div>
                 <div className="flex space-x-2">
-                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message..." className="flex-1 p-2 border rounded" />
+                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} className="flex-1 p-2 border rounded" />
                     <button onClick={sendMessage} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded cursor-pointer">Send</button>
                 </div>
             </div>
